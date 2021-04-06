@@ -1,0 +1,4 @@
+Twisted==21.2.0
+PyQt5==5.15.4
+qt5reactor==0.6.3
+
