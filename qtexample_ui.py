@@ -5,8 +5,10 @@ from PyQt5.QtWidgets import (QWidget, QLCDNumber, QSlider,
                              QVBoxLayout, QApplication)
 
 from twisted.internet.protocol import Protocol, ClientFactory
+from twisted.internet.defer import Deferred, inlineCallbacks
 
 the_client = None
+
 
 class Echo(Protocol):
     total = 0
@@ -22,6 +24,7 @@ class Echo(Protocol):
         
     def connectionMade(self):
         print("Client: connection made: ", self.id)
+        self.factory.d1.callback("success")
 
     def connectionLost(self, reason):
         global the_client
@@ -67,9 +70,21 @@ class Example(QWidget):
 
 factory = ClientFactory()
 factory.protocol = Echo
+
+@inlineCallbacks
+def wait_for_it():
+    print('before await')
+    the_result = yield factory.d1
+    print(f'result = {the_result}')
+    return the_result
+
+
+@inlineCallbacks
 def meth():
     print("called")
+    factory.d1 = Deferred()
     reactor.connectTCP('localhost', 8007, factory)
+    yield wait_for_it()
 
 
 app = QApplication(sys.argv) 
